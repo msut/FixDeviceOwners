@@ -7,7 +7,21 @@ $PhoneModels = @("Cisco 7841",
     "Cisco 8861",
     "Cisco IP Communicator")
 
-function Import-UplinxData {
+<#
+.SYNOPSIS
+Import an Uplinx phone inventory file
+
+.DESCRIPTION
+Import an Uplinx phone inventory file
+
+.PARAMETER UplinxFile
+The Uplinx phone inventory file
+
+.EXAMPLE
+$UplinxData = Import-UplinxData .\Phone_Inventory_Report.csv
+
+#>
+    function Import-UplinxData {
 
     [CmdletBinding()]
     param(
@@ -19,6 +33,20 @@ function Import-UplinxData {
     return $UplinxData
 }
 
+<#
+.SYNOPSIS
+Get a list of phones that don't have the Owner User ID field populated.
+
+.DESCRIPTION
+Get a list of phones that don't have the Owner User ID field populated.
+
+.PARAMETER UplinxData
+The output from Import-UplinxData
+
+.EXAMPLE
+$UnownedPhones = Get-UnownedPhones $UplinxData
+
+#>
 function Get-UnownedPhones {
 
     [CmdletBinding()]
@@ -31,6 +59,17 @@ function Get-UnownedPhones {
     return $UnownedPhones
 }
 
+<#
+.SYNOPSIS
+All AD users with an ipPhone field populated.
+
+.DESCRIPTION
+All AD users with an ipPhone field populated.
+
+.EXAMPLE
+$DnToUserMap = Get-DnToAdUserMap
+
+#>
 function Get-DnToAdUserMap {
     $UsersWithPhone = Get-ADUser -Filter * -Properties ipphone | Where-Object {$null -ne $_.ipphone}
     $DnToUserMap = @{}
@@ -38,6 +77,23 @@ function Get-DnToAdUserMap {
     return $DnToUserMap
 }
 
+<#
+.SYNOPSIS
+Get a list of devices that have an owner that can be set.
+
+.DESCRIPTION
+Get a list of devices that have an owner that can be set.
+
+.PARAMETER DnToUserMap
+The output from Get-DnToAdUserMap
+
+.PARAMETER UnownedPhones
+The output from Get-UnownedPhones
+
+.EXAMPLE
+$PhonesToFix = Get-PhonesToBeFixed -DnToUserMap $DnToUserMap -UnownedPhones $UnownedPhones
+
+#>
 function Get-PhonesToBeFixed {
     [CmdletBinding()]
     param(
@@ -47,7 +103,6 @@ function Get-PhonesToBeFixed {
         [System.Object[]] $UnownedPhones
     )
 
-    # want: list of phones and users to fix
     $PhonesToFix = @()
     $UnownedPhones | ForEach-Object{
         $user = $DnToUserMap[$_.'1st Extension']
