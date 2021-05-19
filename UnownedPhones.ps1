@@ -1,7 +1,10 @@
 Import-Module -Name ActiveDirectory
 
 # the models we need to fix.
-$PhoneModels = @("Cisco 7841",
+$PhoneModels = @(
+    "Cisco 7940",
+    "Cisco 7942",
+    "Cisco 7841",
     "Cisco 8841",
     "Cisco 8851",
     "Cisco 8861",
@@ -116,6 +119,23 @@ function Get-PhonesToBeFixed {
     return $PhonesToFix
 }
 
+<#
+.SYNOPSIS
+Export to csv the phones to be fixed.
+
+.DESCRIPTION
+Export to csv the phones to be fixed.
+
+.PARAMETER Path
+The path to save the csv to.
+
+.PARAMETER PhonesToFix
+The output from Get-UnownedPhones
+
+.EXAMPLE
+Export-PhonesToBeFixed -Path $Path -PhonesToFix $PhonesToFix
+
+#>
 function Export-PhonesToBeFixed {
     [CmdletBinding()]
     param(
@@ -126,4 +146,43 @@ function Export-PhonesToBeFixed {
     )
 
     $PhonesToFix | Export-Csv -Path $Path -NoTypeInformation
+}
+
+<#
+.SYNOPSIS
+Given an Uplinx phone inventory report, generate a csv of device-username tuples.
+
+.DESCRIPTION
+Driver function to generate a csv of device-username tuples suitable 
+for consumption by axl_fixDeviceOwnerId.py
+
+.PARAMETER Path
+The path to save the csv to.
+
+.PARAMETER UplinxFile
+The location of an Uplinx phone inventory report in csv format.
+
+.EXAMPLE
+Export-PhonesToBeFixedFromUplinxFile -Path ./phones_to_fix.csv -UplinxFile ./Phone_Inventory_Report.csv
+
+#>
+function Export-PhonesToBeFixedFromUplinxFile {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0, ValueFromPipeline=$true, ValueFromRemainingArguments=$true)]
+        [string] $Path,
+        [Parameter(Position=0, ValueFromPipeline=$true, ValueFromRemainingArguments=$true)]
+        [string] $UplinxFile
+    )
+
+    Write-Host "importing uplinx file"
+    $UplinxData = Import-UplinxData $UplinxFile
+    Write-Host "getting unowned phones"
+    $UnownedPhones = Get-UnownedPhones $UplinxData
+    Write-Host "creating DN to AD User map (long...)"
+    $DnToUserMap = Get-DnToAdUserMap
+    Write-Host "creating list of phones to fix"
+    $PhonesToFix = Get-PhonesToBeFixed -DnToUserMap $DnToUserMap -UnownedPhones $UnownedPhones
+    Write-Host "exporting list of phones to fix"
+    Export-PhonesToBeFixed -Path $Path -PhonesToFix $PhonesToFix
 }
