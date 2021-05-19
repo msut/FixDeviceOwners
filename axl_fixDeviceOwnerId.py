@@ -7,21 +7,20 @@ Pass the CSV file in as the first argument.
 
 """
 import sys
-
-from requests.sessions import requote_uri
-import urllib3
 import os
 import smtplib
 import csv
 
-from lxml import etree
+import urllib3
 from requests import Session
 from requests.auth import HTTPBasicAuth
-from email.message import EmailMessage
+from requests.sessions import requote_uri
 
+from lxml import etree
 from zeep import Client, Settings, Plugin
 from zeep.transports import Transport
 from zeep.exceptions import Fault
+
 from dotenv import load_dotenv
 
 
