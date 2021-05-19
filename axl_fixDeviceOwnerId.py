@@ -66,11 +66,14 @@ def set_device_owner(device, owner, service):
     owner -- the AD username of the owner e.g. ddiloret
     service -- the AXL service object as provided by get_axl_service
     """
-    service.updatePhone(name=device, ownerUserName=owner)
+    try:
+        service.updatePhone(name=device, ownerUserName=owner)
+    except:
+        print('\x1b[7;31;40m' + '--- ERROR UPDATING OWNER ---' + '\x1b[0m')
 
 
 def set_device_owners(devices_with_owners, service):
-    """Set the owner of a device using the AXL service
+    """Set the owners of a list of devices using the AXL service
 
     Keyword arguments:
     devices_with_owners -- a list of (device_name, username) tuples
@@ -79,13 +82,13 @@ def set_device_owners(devices_with_owners, service):
     for device_with_owner in devices_with_owners:
         (device_name, username) = device_with_owner
         print(f'adding {username} as owner of {device_name}')
-        service.updatePhone(name=device_name, ownerUserName=username)
+        set_device_owner(device=device_name, owner=username, service=service)
 
 
 def parse_phones_to_fix_csv(filename):
 # parse a cooked csv into a list of (device_name, username) tuples
     try:
-        with open(filename, 'w', newline='') as f:
+        with open(filename, newline='') as f:
             devices_with_owners = []
             reader = csv.reader(f)
             done_first = False
@@ -103,4 +106,9 @@ def parse_phones_to_fix_csv(filename):
 
 
 if __name__ == "__main__":
+    # ignore cert warnings on CCM
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    service = get_axl_service(False)
     devices_with_owners = parse_phones_to_fix_csv(filename=sys.argv[1])
+    set_device_owners(devices_with_owners=devices_with_owners,
+        service=service)
