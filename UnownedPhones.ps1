@@ -115,3 +115,15 @@ function Get-PhonesToBeFixed {
     }
     return $PhonesToFix
 }
+
+function Export-PhonesToBeFixed {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0, ValueFromPipeline=$true, ValueFromRemainingArguments=$true)]
+        [string] $Path,
+        [Parameter(Position=0, ValueFromPipeline=$true, ValueFromRemainingArguments=$true)]
+        [System.Object[]] $PhonesToFix
+    )
+
+    $PhonesToFix | Export-Csv -Path $Path -NoTypeInformation
+}
