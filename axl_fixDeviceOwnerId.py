@@ -84,6 +84,9 @@ def set_device_owner(device, owner, service):
     service.updatePhone(name=device, ownerUserName=owner)
 
 
+#def set_device_owners(devices, )
+
+'''
 def parse_uplinx_csv(filename):
 # parse an uplinx csv into a list of DeviceFromUplinx objects
     try:
@@ -107,7 +110,7 @@ def parse_uplinx_csv(filename):
         print('BaseException:', filename)
     else:
         print(f'{filename} read')
-
+'''
 
 if __name__ == "__main__":
     uplinx_devices = parse_uplinx_csv(filename=sys.argv[1])
